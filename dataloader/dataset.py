@@ -190,7 +190,10 @@ class CelebAMaskDataset(Dataset):
                 'mask': mask_tensor
             }
         else:
-            img_tensor = self.unlabel_transform(img_pil)
+            if self.unlabel_transform is not None:
+                img_pil = self.unlabel_transform(img_pil)
+
+            img_tensor = self.preprocess(img_pil)
             return {
                 'image': img_tensor,
             }
