@@ -163,7 +163,7 @@ class CelebAMaskDataset(Dataset):
 
         if self.is_label:
             label_idx = img_idx.replace('.jpg', '.png')
-            mask_pil = Image.open(os.path.join(self.label_dir, img_idx)).convert('L').resize((self.resolution, self.resolution), resample=0)
+            mask_pil = Image.open(os.path.join(self.label_dir, label_idx)).convert('L').resize((self.resolution, self.resolution), resample=0)
 
             if (self.phase == 'train' or self.phase == 'train-val') and self.aug:
                 augmented = self.aug_t(image=np.array(img_pil), mask=np.array(mask_pil))
