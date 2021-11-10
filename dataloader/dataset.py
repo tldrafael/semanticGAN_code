@@ -33,20 +33,20 @@ import albumentations.augmentations as A
 class HistogramEqualization(object):
     def __call__(self, img):
         img_eq = ImageOps.equalize(img)
-        
+
         return img_eq
 
 class AdjustGamma(object):
     def __init__(self, gamma):
         self.gamma = gamma
-    
+
     def __call__(self, img):
         img_gamma = transforms.functional.adjust_gamma(img, self.gamma)
 
         return img_gamma
 
 class CelebAMaskDataset(Dataset):
-    def __init__(self, args, dataroot, unlabel_transform=None, latent_dir=None, is_label=True, phase='train', 
+    def __init__(self, args, dataroot, unlabel_transform=None, latent_dir=None, is_label=True, phase='train',
                     limit_size=None, unlabel_limit_size=None, aug=False, resolution=256):
 
         self.args = args
@@ -56,18 +56,18 @@ class CelebAMaskDataset(Dataset):
         if is_label == True:
             self.latent_dir = latent_dir
             self.data_root = os.path.join(dataroot, 'label_data')
-        
+
             if phase == 'train':
                 if limit_size is None:
                     self.idx_list = np.loadtxt(os.path.join(self.data_root, 'train_full_list.txt'), dtype=str)
                 else:
-                    self.idx_list = np.loadtxt(os.path.join(self.data_root, 
+                    self.idx_list = np.loadtxt(os.path.join(self.data_root,
                                             'train_{}_list.txt'.format(limit_size)), dtype=str).reshape(-1)
             elif phase == 'val':
                 if limit_size is None:
                     self.idx_list = np.loadtxt(os.path.join(self.data_root, 'val_full_list.txt'), dtype=str)
                 else:
-                    self.idx_list = np.loadtxt(os.path.join(self.data_root, 
+                    self.idx_list = np.loadtxt(os.path.join(self.data_root,
                                             'val_{}_list.txt'.format(limit_size)), dtype=str).reshape(-1)
             elif phase == 'train-val':
                 # concat both train and val
@@ -76,9 +76,9 @@ class CelebAMaskDataset(Dataset):
                     val_list = np.loadtxt(os.path.join(self.data_root, 'val_full_list.txt'), dtype=str)
                     self.idx_list = list(train_list) + list(val_list)
                 else:
-                    train_list = np.loadtxt(os.path.join(self.data_root, 
+                    train_list = np.loadtxt(os.path.join(self.data_root,
                                             'train_{}_list.txt'.format(limit_size)), dtype=str).reshape(-1)
-                    val_list = np.loadtxt(os.path.join(self.data_root, 
+                    val_list = np.loadtxt(os.path.join(self.data_root,
                                             'val_{}_list.txt'.format(limit_size)), dtype=str).reshape(-1)
                     self.idx_list = list(train_list) + list(val_list)
             else:
@@ -122,17 +122,17 @@ class CelebAMaskDataset(Dataset):
                     ])
 
         self.unlabel_transform = unlabel_transform
-        
+
 
     def _mask_labels(self, mask_np):
         label_size = len(self.color_map.keys())
         labels = np.zeros((label_size, mask_np.shape[0], mask_np.shape[1]))
         for i in range(label_size):
             labels[i][mask_np==i] = 1.0
-        
+
         return labels
 
-    
+
     @staticmethod
     def preprocess(img):
         image_transform = transforms.Compose(
@@ -147,22 +147,22 @@ class CelebAMaskDataset(Dataset):
         # img_tensor = (img_tensor - 0.5) / 0.5
 
         return img_tensor
-        
+
 
     def __len__(self):
         if hasattr(self.args, 'n_gpu') == False:
             return self.data_size
         # make sure dataloader size is larger than batchxngpu size
         return max(self.args.batch*self.args.n_gpu, self.data_size)
-    
+
     def __getitem__(self, idx):
         if idx >= self.data_size:
             idx = idx % (self.data_size)
         img_idx = self.idx_list[idx]
         img_pil = Image.open(os.path.join(self.img_dir, img_idx)).convert('RGB').resize((self.resolution, self.resolution))
-        mask_pil = Image.open(os.path.join(self.label_dir, img_idx)).convert('L').resize((self.resolution, self.resolution), resample=0)
-        
+
         if self.is_label:
+            mask_pil = Image.open(os.path.join(self.label_dir, img_idx)).convert('L').resize((self.resolution, self.resolution), resample=0)
             if (self.phase == 'train' or self.phase == 'train-val') and self.aug:
                 augmented = self.aug_t(image=np.array(img_pil), mask=np.array(mask_pil))
                 aug_img_pil = Image.fromarray(augmented['image'])
@@ -182,7 +182,7 @@ class CelebAMaskDataset(Dataset):
 
                 mask_tensor = torch.tensor(labels, dtype=torch.float)
                 mask_tensor = (mask_tensor - 0.5) / 0.5
-            
+
             return {
                 'image': img_tensor,
                 'mask': mask_tensor
