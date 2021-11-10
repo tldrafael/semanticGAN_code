@@ -27,8 +27,9 @@ from torch.utils.data import DataLoader, ConcatDataset
 
 import argparse
 from utils import inception_utils
-from dataloader import (CelebAMaskDataset)
+from dataloader.dataset import (CelebAMaskDataset)
 import pickle
+
 
 @torch.no_grad()
 def extract_features(args, loader, inception, device):
@@ -63,6 +64,7 @@ def get_dataset(args):
     else:
         raise Exception('No such a dataloader!')
     return dataset
+
 
 if __name__ == '__main__':
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
