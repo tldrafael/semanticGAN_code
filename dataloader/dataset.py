@@ -104,6 +104,7 @@ class CelebAMaskDataset(Dataset):
             6: [ 227,207,87],
             7: [ 142,142,56]
         }
+        self.mask_map19to8 = {0: [0, 15, 16], 1: [1, 14], 2: [10], 3: [4, 5, 6], 4: [2, 3], 5: [7, 8, 9], 6: [11, 12, 13], 7: [17, 18]}
 
         self.data_size = len(self.idx_list)
         self.resolution = resolution
@@ -127,8 +128,11 @@ class CelebAMaskDataset(Dataset):
     def _mask_labels(self, mask_np):
         label_size = len(self.color_map.keys())
         labels = np.zeros((label_size, mask_np.shape[0], mask_np.shape[1]))
+
+
         for i in range(label_size):
-            labels[i][mask_np==i] = 1.0
+            # labels[i][mask_np==i] = 1.0
+            labels[i] = np.isin(mask_np, self.mask_map19to8[i])
 
         return labels
 
