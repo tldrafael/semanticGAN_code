@@ -85,7 +85,7 @@ if __name__ == '__main__':
     inception = inception_utils.load_inception_net()
 
     dset = get_dataset(args)
-    loader = DataLoader(dset, batch_size=args.batch, num_workers=4)
+    loader = DataLoader(dset, batch_size=args.batch, num_workers=2)
 
     pools, logits = extract_features(args, loader, inception, device)
 
