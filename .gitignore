@@ -1,7 +1,9 @@
+extension-cpp/
 .ipynb_checkpoints
 *.ipynb
 tags
 */__pycache__/
+*/*/__pycache__/
 *.swp
 celeba*
 *.zip
