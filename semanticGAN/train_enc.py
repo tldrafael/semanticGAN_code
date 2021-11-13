@@ -210,7 +210,16 @@ def mask2rgb(args, mask):
              [227, 207, 87],
              [142, 142, 56]], dtype=torch.float)
     else:
-        raise Exception('No such a dataloader!')
+        color_table = torch.tensor(
+            [[0, 0, 0],
+             [0, 0, 205],
+             [132, 112, 255],
+             [25, 25, 112],
+             [187, 255, 255],
+             [102, 205, 170],
+             [227, 207, 87],
+             [142, 142, 56]], dtype=torch.float)
+        # raise Exception('No such a dataloader!')
 
     rgb_tensor = F.embedding(mask, color_table).permute(0, 3, 1, 2)
     return rgb_tensor
@@ -411,7 +420,8 @@ def train(args, ckpt_dir, img_loader, seg_loader, seg_val_loader, generator, per
         if args.seg_name == 'celeba-mask':
             real_img = next(img_loader)['image']
         else:
-            raise Exception('No such a dataloader!')
+            real_img = next(img_loader)['image']
+            # raise Exception('No such a dataloader!')
 
         real_img = real_img.to(device)
 
@@ -593,21 +603,27 @@ def get_seg_dataset(args, phase='train'):
         seg_dataset = CelebAMaskDataset(args, args.seg_dataset, is_label=True, phase=phase,
                                         limit_size=args.limit_data, aug=args.seg_aug, resolution=args.size)
     else:
-        raise Exception('No such a dataloader!')
+        seg_dataset = CelebAMaskDataset(args, args.seg_dataset, is_label=True, phase=phase,
+                                        limit_size=args.limit_data, aug=args.seg_aug, resolution=args.size)
+        # raise Exception('No such a dataloader!')
 
     return seg_dataset
 
 
 def get_transformation(args):
     if args.seg_name == 'celeba-mask':
-        transform = transforms.Compose(
-            [
+        transform = transforms.Compose( [
                 transforms.ToTensor(),
                 transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5), inplace=True)
             ]
         )
     else:
-        raise Exception('No such a dataloader!')
+        transform = transforms.Compose( [
+                transforms.ToTensor(),
+                transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5), inplace=True)
+            ]
+        )
+        # raise Exception('No such a dataloader!')
 
     return transform
 
@@ -776,7 +792,11 @@ if __name__ == '__main__':
                                         unlabel_limit_size=args.unlabel_limit_data,
                                         is_label=False, resolution=args.size)
     else:
-        raise Exception('No such a dataloader!')
+        transform = get_transformation(args)
+        img_dataset = CelebAMaskDataset(args, args.img_dataset, unlabel_transform=transform,
+                                        unlabel_limit_size=args.unlabel_limit_data,
+                                        is_label=False, resolution=args.size)
+        # raise Exception('No such a dataloader!')
 
     img_loader = data.DataLoader(
         img_dataset,
@@ -799,14 +819,24 @@ if __name__ == '__main__':
             num_workers=4,
         )
     else:
-        raise Exception('No such a dataloader!')
+        seg_dataset = get_seg_dataset(args, phase='train')
+        seg_loader = data.DataLoader(
+            seg_dataset,
+            batch_size=args.batch,
+            sampler=data_sampler(seg_dataset, shuffle=True, distributed=args.distributed),
+            drop_last=True,
+            pin_memory=True,
+            num_workers=4,
+        )
+        # raise Exception('No such a dataloader!')
 
     print("Loading train dataloader with size ", seg_dataset.data_size)
 
     if args.seg_name == 'celeba-mask':
         seg_val_dataset = get_seg_dataset(args, phase='val')
     else:
-        raise Exception('No such a dataloader!')
+        seg_val_dataset = get_seg_dataset(args, phase='val')
+        # raise Exception('No such a dataloader!')
 
     print("Loading val dataloader with size ", seg_val_dataset.data_size)
 

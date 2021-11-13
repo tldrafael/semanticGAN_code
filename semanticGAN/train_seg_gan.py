@@ -461,9 +461,14 @@ def train(args, ckpt_dir, img_loader, seg_loader, seg_val_loader, generator, dis
                         for key in color_map:
                             sample_mask[sample_seg==key] = torch.tensor(color_map[key], dtype=torch.float)
                         sample_mask = sample_mask.permute(0,3,1,2)
-                    
                     else:
-                        raise Exception('No such a dataloader!')
+                        sample_seg = torch.argmax(sample_seg, dim=1)
+                        color_map = seg_val_loader.dataset.color_map
+                        sample_mask = torch.zeros((sample_seg.shape[0], sample_seg.shape[1], sample_seg.shape[2], 3), dtype=torch.float)
+                        for key in color_map:
+                            sample_mask[sample_seg==key] = torch.tensor(color_map[key], dtype=torch.float)
+                        sample_mask = sample_mask.permute(0,3,1,2)
+                        # raise Exception('No such a dataloader!')
 
                     os.makedirs(os.path.join(ckpt_dir, 'sample'), exist_ok=True)
                     utils.save_image(
@@ -534,7 +539,14 @@ def get_transformation(args):
                 )
     
     else:
-        raise Exception('No such a dataloader!')
+        transform = transforms.Compose(
+                    [
+                        transforms.RandomHorizontalFlip(),
+                        transforms.ToTensor(),
+                        transforms.Normalize((0.5,0.5,0.5), (0.5,0.5,0.5), inplace=True)
+                    ]
+                )
+        # raise Exception('No such a dataloader!')
     
     return transform
 
@@ -698,7 +710,10 @@ if __name__ == '__main__':
         img_dataset = CelebAMaskDataset(args, args.img_dataset, unlabel_transform=transform, unlabel_limit_size=args.unlabel_limit_data,
                                                 is_label=False, resolution=args.size)
     else:
-        raise Exception('No such a dataloader!')
+        transform = get_transformation(args)
+        img_dataset = CelebAMaskDataset(args, args.img_dataset, unlabel_transform=transform, unlabel_limit_size=args.unlabel_limit_data,
+                                                is_label=False, resolution=args.size)
+        # raise Exception('No such a dataloader!')
 
     print("Loading unlabel dataloader with size ", img_dataset.data_size)
 

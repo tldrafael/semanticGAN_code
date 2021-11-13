@@ -49,9 +49,17 @@ def mask2rgb(args, mask):
                         [ 102,205,170],
                         [ 227,207,87],
                         [ 142,142,56]], dtype=torch.float)
-
     else:
-        raise Exception('No such a dataloader!')
+        color_table = torch.tensor(
+                        [[  0,   0,   0],
+                        [ 0,0,205],
+                        [132,112,255],
+                        [ 25,25,112],
+                        [187,255,255],
+                        [ 102,205,170],
+                        [ 227,207,87],
+                        [ 142,142,56]], dtype=torch.float)
+        # raise Exception('No such a dataloader!')
 
     rgb_tensor = F.embedding(mask, color_table).permute(0,3,1,2)
     return rgb_tensor
@@ -161,7 +169,13 @@ def get_transformation(args):
                 ]
             )
     else:
-        raise Exception('No such a dataloader!')
+        transform = transforms.Compose(
+                [
+                    transforms.ToTensor(),
+                    transforms.Normalize((0.5,0.5,0.5), (0.5,0.5,0.5)),
+                ]
+            )
+        # raise Exception('No such a dataloader!')
     
     return transform
 
