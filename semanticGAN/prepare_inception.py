@@ -62,7 +62,10 @@ def get_dataset(args):
         train_val_dataset = CelebAMaskDataset(args, args.path, is_label=True, phase='train-val')
         dataset = ConcatDataset([unlabel_dataset, train_val_dataset])
     else:
-        raise Exception('No such a dataloader!')
+        unlabel_dataset = CelebAMaskDataset(args, args.path, is_label=False)
+        train_val_dataset = CelebAMaskDataset(args, args.path, is_label=True, phase='train-val')
+        dataset = ConcatDataset([unlabel_dataset, train_val_dataset])
+        # raise Exception('No such a dataloader!')
     return dataset
 
 

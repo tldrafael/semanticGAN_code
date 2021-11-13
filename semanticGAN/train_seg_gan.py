@@ -516,11 +516,12 @@ def get_seg_dataset(args, phase='train'):
     if args.seg_name == 'celeba-mask':
         seg_dataset = CelebAMaskDataset(args, args.seg_dataset, is_label=True, phase=phase,
                                             limit_size=args.limit_data, aug=args.seg_aug, resolution=args.size)
-   
     else:
-        raise Exception('No such a dataloader!')
-    
+        seg_dataset = CelebAMaskDataset(args, args.seg_dataset, is_label=True, phase=phase,
+                                            limit_size=args.limit_data, aug=args.seg_aug, resolution=args.size)
+        # raise Exception('No such a dataloader!')
     return seg_dataset
+
 
 def get_transformation(args):
     if args.seg_name == 'celeba-mask':
