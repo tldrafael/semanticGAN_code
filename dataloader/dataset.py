@@ -27,14 +27,26 @@ import os
 import numpy as np
 import torch
 import cv2
+import seaborn as sns
 import albumentations
 import albumentations.augmentations as A
+
+
+def get_ncolors_pallete(n):
+    pal = sns.color_palette(palette='gist_rainbow', as_cmap=True)(np.linspace(0, 1, n - 1))[..., :3]
+    pal = np.vstack([[[0, 0, 0]], pal])
+    dict_pal = {}
+    for i in range(pal.shape[0]):
+        dict_pal[i] = pal[i]
+    return dict_pal
+
 
 class HistogramEqualization(object):
     def __call__(self, img):
         img_eq = ImageOps.equalize(img)
 
         return img_eq
+
 
 class AdjustGamma(object):
     def __init__(self, gamma):
@@ -44,6 +56,7 @@ class AdjustGamma(object):
         img_gamma = transforms.functional.adjust_gamma(img, self.gamma)
 
         return img_gamma
+
 
 class CelebAMaskDataset(Dataset):
     def __init__(self, args, dataroot, unlabel_transform=None, latent_dir=None, is_label=True, phase='train',
@@ -94,16 +107,7 @@ class CelebAMaskDataset(Dataset):
         self.label_dir = os.path.join(self.data_root, 'label')
 
         self.phase = phase
-        self.color_map = {
-            0: [  0,   0,   0],
-            1: [ 0,0,205],
-            2: [132,112,255],
-            3: [ 25,25,112],
-            4: [187,255,255],
-            5: [ 102,205,170],
-            6: [ 227,207,87],
-            7: [ 142,142,56]
-        }
+        self.color_map = get_ncolors_pallete(args.seg_dim)
         self.mask_map19to8 = {0: [0, 15, 16], 1: [1, 14], 2: [10], 3: [4, 5, 6], 4: [2, 3], 5: [7, 8, 9], 6: [11, 12, 13], 7: [17, 18]}
 
         self.data_size = len(self.idx_list)
@@ -129,27 +133,22 @@ class CelebAMaskDataset(Dataset):
         label_size = len(self.color_map.keys())
         labels = np.zeros((label_size, mask_np.shape[0], mask_np.shape[1]))
 
-
         for i in range(label_size):
-            # labels[i][mask_np==i] = 1.0
-            labels[i] = np.isin(mask_np, self.mask_map19to8[i])
+            if self.args.seg_name == 'celeba-mask':
+                labels[i] = np.isin(mask_np, self.mask_map19to8[i])
+            else:
+                labels[i][mask_np == i] = 1.
 
         return labels
 
 
     @staticmethod
     def preprocess(img):
-        image_transform = transforms.Compose(
-                    [
-                        transforms.ToTensor(),
-                        transforms.Normalize((0.5,0.5,0.5), (0.5,0.5,0.5), inplace=True)
-                    ]
-                )
+        image_transform = transforms.Compose([
+                                transforms.ToTensor(),
+                                transforms.Normalize((0.5,0.5,0.5), (0.5,0.5,0.5), inplace=True)
+                                ])
         img_tensor = image_transform(img)
-        # normalize
-        # img_tensor = (img_tensor - img_tensor.min()) / (img_tensor.max() - img_tensor.min())
-        # img_tensor = (img_tensor - 0.5) / 0.5
-
         return img_tensor
 
 
@@ -162,6 +161,7 @@ class CelebAMaskDataset(Dataset):
     def __getitem__(self, idx):
         if idx >= self.data_size:
             idx = idx % (self.data_size)
+
         img_idx = self.idx_list[idx]
         img_pil = Image.open(os.path.join(self.img_dir, img_idx)).convert('RGB').resize((self.resolution, self.resolution))
 
@@ -173,9 +173,9 @@ class CelebAMaskDataset(Dataset):
                 augmented = self.aug_t(image=np.array(img_pil), mask=np.array(mask_pil))
                 aug_img_pil = Image.fromarray(augmented['image'])
                 # apply pixel-wise transformation
-                img_tensor = self.preprocess(aug_img_pil)
-
                 mask_np = np.array(augmented['mask'])
+
+                img_tensor = self.preprocess(aug_img_pil)
                 labels = self._mask_labels(mask_np)
 
                 mask_tensor = torch.tensor(labels, dtype=torch.float)
@@ -195,7 +195,6 @@ class CelebAMaskDataset(Dataset):
             }
         else:
             img_tensor = self.preprocess(img_pil)
-
             return {
                 'image': img_tensor,
             }
