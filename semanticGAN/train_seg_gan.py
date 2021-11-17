@@ -587,6 +587,9 @@ if __name__ == '__main__':
     parser.add_argument('--seg_dim', type=int, default=8)
     parser.add_argument('--seg_aug', action='store_true', help='seg augmentation')
 
+    parser.add_argument('--latent', type=int, default=512)
+    parser.add_argument('--n_mlp', type=int, default=8)
+
     parser.add_argument('--checkpoint_dir', type=str, default='./checkpoint/')
 
     args = parser.parse_args()
@@ -608,9 +611,6 @@ if __name__ == '__main__':
         torch.cuda.set_device(args.local_rank)
         torch.distributed.init_process_group(backend='nccl', init_method='env://')
         synchronize()
-
-    args.latent = 512
-    args.n_mlp = 8
 
     args.start_iter = 0
 
