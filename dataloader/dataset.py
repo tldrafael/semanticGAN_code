@@ -29,7 +29,8 @@ import torch
 import cv2
 import seaborn as sns
 import albumentations
-import albumentations.augmentations as A
+import albumentations as A
+# import albumentations.augmentations as A
 
 
 def get_ncolors_pallete(n):
@@ -115,9 +116,19 @@ class CelebAMaskDataset(Dataset):
 
         self.aug = aug
         if aug == True:
-            self.aug_t = albumentations.Compose([
-                            A.transforms.HorizontalFlip(p=0.5),
-                            A.geometric.transforms.ShiftScaleRotate(shift_limit=0.1,
+            #self.aug_t = albumentations.Compose([
+            #                A.transforms.HorizontalFlip(p=0.5),
+            #                A.geometric.transforms.ShiftScaleRotate(shift_limit=0.1,
+            #                                    scale_limit=0.2,
+            #                                    rotate_limit=15,
+            #                                    border_mode=cv2.BORDER_CONSTANT,
+            #                                    value=0,
+            #                                    mask_value=0,
+            #                                    p=0.5),
+            #        ])
+            self.aug_t = A.Compose([
+                            A.HorizontalFlip(p=0.5),
+                            A.ShiftScaleRotate(shift_limit=0.1,
                                                 scale_limit=0.2,
                                                 rotate_limit=15,
                                                 border_mode=cv2.BORDER_CONSTANT,
