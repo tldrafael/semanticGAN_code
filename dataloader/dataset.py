@@ -121,7 +121,7 @@ class CelebAMaskDataset(Dataset):
                                                 scale_limit=0.2,
                                                 rotate_limit=15,
                                                 border_mode=cv2.BORDER_CONSTANT,
-                                                value=0,
+                                                # value=0,
                                                 mask_value=0,
                                                 p=0.5),
                     ])
