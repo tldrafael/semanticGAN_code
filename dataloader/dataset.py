@@ -117,11 +117,11 @@ class CelebAMaskDataset(Dataset):
         if aug == True:
             self.aug_t = albumentations.Compose([
                             A.transforms.HorizontalFlip(p=0.5),
-                            A.transforms.ShiftScaleRotate(shift_limit=0.1,
+                            A.geometric.transforms.ShiftScaleRotate(shift_limit=0.1,
                                                 scale_limit=0.2,
                                                 rotate_limit=15,
                                                 border_mode=cv2.BORDER_CONSTANT,
-                                                # value=0,
+                                                value=0,
                                                 mask_value=0,
                                                 p=0.5),
                     ])
